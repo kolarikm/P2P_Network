@@ -1,15 +1,8 @@
 import java.awt.EventQueue;
 
-import javax.swing.JFrame;
-
-import javax.swing.JPanel;
-import javax.swing.JLabel;
+import javax.swing.*;
 
 import java.awt.FlowLayout;
-import javax.swing.JTextField;
-import javax.swing.JComboBox;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
 
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -30,10 +23,12 @@ public class MainGUI implements ActionListener{
     private JTextField txtCommand;
     private JTextField responseTextArea;
     private JButton btnConnect;
+    private JComboBox dropDown;
 
     /**
      * Launch the application.
      */
+
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -99,17 +94,14 @@ public class MainGUI implements ActionListener{
         panel.add(txtHostName);
         txtHostName.setColumns(10);
 
-        JComboBox dropDown = new JComboBox();
+        dropDown = new JComboBox();
         dropDown.setModel(new DefaultComboBoxModel(new String[] {"Ethernet", "T1"}));
         panel.add(dropDown);
 
-        JComboBox comboBox = new JComboBox();
-        comboBox.setModel(new DefaultComboBoxModel(new String[] {"T1", "Ethernet"}));
-        comboBox.setSelectedIndex(0);
-        panel.add(comboBox);
-
         btnConnect = new JButton("Connect");
         panel.add(btnConnect);
+        btnConnect.addActionListener(this);
+
 
         JLabel lblNewLabel = new JLabel("");
         panel.add(lblNewLabel);
@@ -164,7 +156,22 @@ public class MainGUI implements ActionListener{
         panel_1.add(responseTextArea);
     }
 
-    public void actionPerformed(ActionEvent e) {
+    private boolean createConnection() {
+        try {
+            FTPClient c = new FTPClient(serverIpInput.getText(), textPanelPort.getText(),
+                    UserName.getText(), txtHostName.getText(), dropDown.getSelectedItem().toString());
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
+    public void actionPerformed(ActionEvent e) {
+        JComponent pressed = (JComponent)e.getSource();
+
+        if (pressed == btnConnect) {
+            createConnection();
+        }
     }
 }
