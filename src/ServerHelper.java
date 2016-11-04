@@ -12,7 +12,7 @@ public class ServerHelper extends Thread {
     DataOutputStream dataOut;
 
     protected static ArrayList<User> userMap = new ArrayList<User>();
-    protected static HashMap<String, ArrayList<String>> fileMap = new HashMap<String, ArrayList<String>>();
+    protected static HashMap<String, ArrayList<UserFile>> fileMap = new HashMap<String, ArrayList<UserFile>>();
 
     public ServerHelper(Socket controlSoc) {
         try {
@@ -136,7 +136,7 @@ public class ServerHelper extends Thread {
         }
     }
 
-    protected static void addFiles(String username, ArrayList<String> userFiles) {
+    protected static void addFiles(String username, ArrayList<UserFile> userFiles) {
         synchronized (fileMap) {
             fileMap.put(username, userFiles);
         }
@@ -147,17 +147,24 @@ public class ServerHelper extends Thread {
         String hostname = controlIn.readUTF();
         String connSpeed = controlIn.readUTF();
 
-        ArrayList<String> userFiles = new ArrayList<String>();
+        ArrayList<UserFile> userFiles = new ArrayList<UserFile>();
 
         User user = new User(username, hostname, connSpeed);
 
         addUser(user);
 
-        int length = Integer.valueOf(controlIn.readUTF());
+        int lines = Integer.valueOf(controlIn.readUTF());
 
-        while(length > 0) {
-            userFiles.add(controlIn.readUTF());
-            length--;
+        String name;
+        String desc;
+
+        while(lines > 0) {
+            String line[] = controlIn.readUTF().split(":");
+            name = line[0];
+            desc = line[1];
+            UserFile file = new UserFile(name, desc);
+            userFiles.add(file);
+            lines--;
         }
 
         addFiles(username, userFiles);

@@ -12,7 +12,6 @@ public class FTPClient {
 
     int myPort;
     String myHost;
-
     String username;
     String hostname;
     String connSpeed;
@@ -41,6 +40,7 @@ public class FTPClient {
         }
         controlIn = new DataInputStream(clientSocket.getInputStream());
         controlOut = new DataOutputStream(clientSocket.getOutputStream());
+        uploadClientInfo();
     }
 
     public String search(String description) throws Exception {
@@ -69,22 +69,29 @@ public class FTPClient {
     /*
     * Once the client connects to the server it then uploads all of it's current files
     * Connect speed, port, IP address, and hostname to the server itself.
-     */
-    private void uploadContent() throws Exception {
+    */
+    private void uploadClientInfo() throws Exception {
         if (clientSocket.isBound()) {
-            File f = new File(".");
-            controlOut.writeUTF("INIT");
 
+            controlOut.writeUTF("INIT");
             controlOut.writeUTF(username);
             controlOut.writeUTF(hostname);
             controlOut.writeUTF(connSpeed);
 
-            File array[] = f.listFiles();
-            controlOut.writeUTF(""+array.length);
-            for (File file : array) {
-                controlOut.writeUTF(file.getName());
-            }
+            //Get number of lines first so we know when to stop reading data
+            BufferedReader reader = new BufferedReader(new FileReader("/Users/Andromeda/IdeaProjects/P2P_Network/src/fileList.txt"));
+            int lines = 0;
+            while (reader.readLine() != null) lines++;
+            reader.close();
 
+            controlOut.writeUTF(""+lines);
+
+            try (BufferedReader br = new BufferedReader(new FileReader("/Users/Andromeda/IdeaProjects/P2P_Network/src/fileList.txt"))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    controlOut.writeUTF(line);
+                }
+            }
             controlOut.flush();
         }
     }
