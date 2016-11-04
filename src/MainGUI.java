@@ -1,34 +1,41 @@
 import java.awt.EventQueue;
 
+import javax.swing.JFrame;
 import javax.swing.*;
 
-import java.awt.FlowLayout;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
 
+import java.awt.FlowLayout;
+import javax.swing.JTextField;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import java.awt.Font;
+import javax.swing.JTextArea;
 import java.awt.Color;
+import javax.swing.JScrollPane;
 
 public class MainGUI implements ActionListener{
 
     private JFrame frame;
     private JTextField serverIpInput;
-    private JTextField textPanelPort;
-    private JTextField UserName;
-    private JTextField txtHostName;
+    private JTextField portInput;
+    private JTextField userNameInput;
+    private JTextField hostNameInput;
     private JTextField textField;
-    private JTextField searchResults;
     private JTextField txtCommand;
-    private JTextField responseTextArea;
     private JButton btnConnect;
-    private JComboBox dropDown;
+    private JTextArea commandRestuls;
+    private JComboBox speedSelector;
+    private FTPClient client;
 
     /**
      * Launch the application.
      */
-
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -55,8 +62,7 @@ public class MainGUI implements ActionListener{
     private void initialize() {
         frame = new JFrame();
         frame.setBackground(Color.DARK_GRAY);
-        frame.setBounds(100, 100, 780, 400);
-        frame.setResizable(false);
+        frame.setBounds(100, 100, 772, 412);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel panel = new JPanel();
@@ -73,38 +79,34 @@ public class MainGUI implements ActionListener{
         JLabel lblPort = new JLabel("Port:");
         panel.add(lblPort);
 
-        textPanelPort = new JTextField();
-        textPanelPort.setText("port");
-        panel.add(textPanelPort);
-        textPanelPort.setColumns(5);
+        portInput = new JTextField();
+        portInput.setText("port");
+        panel.add(portInput);
+        portInput.setColumns(5);
 
         JLabel lblUsername = new JLabel("Name:");
         panel.add(lblUsername);
 
-        UserName = new JTextField();
-        UserName.setText("userName");
-        panel.add(UserName);
-        UserName.setColumns(10);
+        userNameInput = new JTextField();
+        userNameInput.setText("userName");
+        panel.add(userNameInput);
+        userNameInput.setColumns(10);
 
         JLabel lblHostname = new JLabel("HostName:");
         panel.add(lblHostname);
 
-        txtHostName = new JTextField();
-        txtHostName.setText("HostName");
-        panel.add(txtHostName);
-        txtHostName.setColumns(10);
+        hostNameInput = new JTextField();
+        hostNameInput.setText("HostName");
+        panel.add(hostNameInput);
+        hostNameInput.setColumns(10);
 
-        dropDown = new JComboBox();
-        dropDown.setModel(new DefaultComboBoxModel(new String[] {"Ethernet", "T1"}));
-        panel.add(dropDown);
+        speedSelector = new JComboBox();
+        speedSelector.setModel(new DefaultComboBoxModel(new String[] {"T1", "Ethernet"}));
+        speedSelector.setSelectedIndex(0);
+        panel.add(speedSelector);
 
         btnConnect = new JButton("Connect");
         panel.add(btnConnect);
-        btnConnect.addActionListener(this);
-
-
-        JLabel lblNewLabel = new JLabel("");
-        panel.add(lblNewLabel);
 
         JPanel panel_1 = new JPanel();
         panel_1.setLayout(null);
@@ -117,23 +119,13 @@ public class MainGUI implements ActionListener{
         textField.setBounds(90, 0, 150, 30);
         panel_1.add(textField);
         textField.setColumns(10);
-
-        JButton btnSearch = new JButton("Search");
-        btnSearch.setBounds(0, 0, 0, 0);
-        panel_1.add(btnSearch);
         frame.getContentPane().setLayout(new GridLayout(0, 1, 0, 0));
         frame.getContentPane().add(panel);
         frame.getContentPane().add(panel_1);
 
-        JButton btnSearch_1 = new JButton("Search");
-        btnSearch_1.setBounds(243, 2, 117, 29);
-        panel_1.add(btnSearch_1);
-
-        searchResults = new JTextField();
-        searchResults.setFont(new Font("Lucida Grande", Font.PLAIN, 14));
-        searchResults.setBounds(20, 42, 340, 114);
-        panel_1.add(searchResults);
-        searchResults.setColumns(100);
+        JButton btnSearch = new JButton("Search");
+        btnSearch.setBounds(243, 2, 117, 29);
+        panel_1.add(btnSearch);
 
         JLabel commandLabel = new JLabel("Enter Command:");
         commandLabel.setBounds(414, 7, 108, 16);
@@ -149,17 +141,28 @@ public class MainGUI implements ActionListener{
         btnNewButton.setBounds(652, 2, 117, 29);
         panel_1.add(btnNewButton);
 
-        responseTextArea = new JTextField();
-        responseTextArea.setFont(new Font("Lucida Grande", Font.PLAIN, 14));
-        responseTextArea.setColumns(100);
-        responseTextArea.setBounds(424, 42, 340, 114);
-        panel_1.add(responseTextArea);
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setBounds(20, 39, 340, 114);
+        panel_1.add(scrollPane);
+
+        JTextArea txtrSampletext = new JTextArea();
+        txtrSampletext.setText("sampleText");
+        scrollPane.setViewportView(txtrSampletext);
+
+        JScrollPane scrollPane_1 = new JScrollPane();
+        scrollPane_1.setBounds(414, 39, 340, 114);
+        panel_1.add(scrollPane_1);
+
+        commandRestuls = new JTextArea();
+        commandRestuls.setText("sample text");
+        commandRestuls.setColumns(25);
+        scrollPane_1.setViewportView(commandRestuls);
     }
 
     private boolean createConnection() {
         try {
-            FTPClient c = new FTPClient(serverIpInput.getText(), textPanelPort.getText(),
-                    UserName.getText(), txtHostName.getText(), dropDown.getSelectedItem().toString());
+             client = new FTPClient(serverIpInput.getText(), portInput.getText(),
+                    userNameInput.getText(), hostNameInput.getText(), speedSelector.getSelectedItem().toString());
             return true;
         } catch (Exception e) {
             e.printStackTrace();
