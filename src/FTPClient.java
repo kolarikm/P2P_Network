@@ -43,27 +43,30 @@ public class FTPClient {
         uploadClientInfo();
     }
 
-    public String search(String description) throws Exception {
+
+    public void search(String description) throws Exception {
         //used for data connections between the
-        ServerSocket dataServerSocket = new ServerSocket(5013);
-        controlOut.writeUTF("LIST " + description);
-        controlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
-        Socket socket = dataServerSocket.accept();
+//        ServerSocket dataServerSocket = new ServerSocket(5013);
+        controlOut.writeUTF("LIST");
+        controlOut.writeUTF(description);
+//        controlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
+//        Socket socket = dataServerSocket.accept();
 
-        actualDataIn = new DataInputStream(socket.getInputStream());
+//        actualDataIn = new DataInputStream(socket.getInputStream());
 
-        String descriptions = null;
-        int lengthOfMessage = Integer.valueOf(actualDataIn.readUTF());
-        while (lengthOfMessage > 0) {
-            descriptions += actualDataIn.readUTF() + "\n";
-
-            lengthOfMessage -= 1;
-        }
-        dataServerSocket.close();
-        socket.close();
-        actualDataIn.close();
-
-        return descriptions;
+//        String descriptions = null;
+//        int lengthOfMessage = Integer.valueOf(actualDataIn.readUTF());
+//        while (lengthOfMessage > 0) {
+//            descriptions += actualDataIn.readUTF() + "\n";
+//
+//            lengthOfMessage -= 1;
+//        }
+//        dataServerSocket.close();
+//        socket.close();
+//        actualDataIn.close();
+//
+//        return descriptions;
+        return ;
     }
 
     /*

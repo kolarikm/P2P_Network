@@ -26,12 +26,13 @@ public class MainGUI implements ActionListener{
     private JTextField portInput;
     private JTextField userNameInput;
     private JTextField hostNameInput;
-    private JTextField textField;
+    private JTextField txtSearch;
     private JTextField txtCommand;
     private JButton btnConnect;
     private JTextArea commandRestuls;
     private JComboBox speedSelector;
     private FTPClient client;
+    private JButton btnSearch;
 
     /**
      * Launch the application.
@@ -64,6 +65,7 @@ public class MainGUI implements ActionListener{
         frame.setBackground(Color.DARK_GRAY);
         frame.setBounds(100, 100, 772, 412);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setTitle("Current Status: Not Connect");
 
         JPanel panel = new JPanel();
         panel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
@@ -117,17 +119,18 @@ public class MainGUI implements ActionListener{
         lblSearchMeBitch.setBounds(20, 0, 62, 30);
         panel_1.add(lblSearchMeBitch);
 
-        textField = new JTextField();
-        textField.setBounds(90, 0, 150, 30);
-        panel_1.add(textField);
-        textField.setColumns(10);
+        txtSearch = new JTextField();
+        txtSearch.setBounds(90, 0, 150, 30);
+        panel_1.add(txtSearch);
+        txtSearch.setColumns(10);
         frame.getContentPane().setLayout(new GridLayout(0, 1, 0, 0));
         frame.getContentPane().add(panel);
         frame.getContentPane().add(panel_1);
 
-        JButton btnSearch = new JButton("Search");
+        btnSearch = new JButton("Search");
         btnSearch.setBounds(243, 2, 117, 29);
         panel_1.add(btnSearch);
+        btnSearch.addActionListener(this);
 
         JLabel commandLabel = new JLabel("Enter Command:");
         commandLabel.setBounds(414, 7, 108, 16);
@@ -172,11 +175,43 @@ public class MainGUI implements ActionListener{
         }
     }
 
+    /*
+    * Called when the client requests a search for a certain file.
+    * Sorts the results by
+     */
+//    private boolean searchRemoteServer(){
+//        try {
+//            //if there are no search results returned.
+//            if (client.search(client.search(stripSpaces(txtSearch.getText()))).equals("")) {
+//                txtSearch.setText("There were no search results returned for that term.");
+//            }else{
+//                //Finish me later
+//                txtSearch.setText("Here are the Results...");
+//            }
+//        }catch(Exception e){
+//            txtSearch.setText("Sorry, something went wrong.");
+//        }
+//        return false;
+//    }
+
+    private String stripSpaces(String s){
+        return s.replaceAll("\\s", "");
+    }
+
     public void actionPerformed(ActionEvent e) {
         JComponent pressed = (JComponent)e.getSource();
 
         if (pressed == btnConnect) {
-            createConnection();
+            //The connection is active
+            if(createConnection()) {
+                frame.setTitle("Current Status: Connected");
+            }
+        }else if(pressed == btnSearch){
+            try {
+                client.search(txtSearch.getText());
+            }catch(Exception o){
+                System.out.println("Something went wrong");
+            }
         }
     }
 }

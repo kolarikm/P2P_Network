@@ -126,6 +126,38 @@ public class ServerHelper extends Thread {
         }
     }
 
+    private void search(String fileDescription){
+        HashMap<String, FileSearchDTO> resultSet = new HashMap<String, FileSearchDTO>();
+        //loop through every key in the hashMap
+        for (String usersFiles : fileMap.keySet()) {
+            //Look at all the current Users Files
+            for (UserFile files : fileMap.get(usersFiles)) {
+                if(files.getDescription().equalsIgnoreCase(fileDescription)){
+                    resultSet.put(usersFiles, new FileSearchDTO());
+                    resultSet.get(usersFiles).setFileName(files.getName());
+                    resultSet.get(usersFiles).setUserName(usersFiles);
+                }
+            }
+        }
+        //Cross the previous results to get the connection speed from the usermap
+        for(User user: userMap){
+            for(String fileName: resultSet.keySet()){
+                if(resultSet.get(fileName).getUserName().equalsIgnoreCase(user.getUsername())){
+                    resultSet.get(fileName).setNetworkSpeed(user.getConnSpeed());
+                }
+            }
+        }
+
+        //This is a Debug Statement for seeing what the result set contains before
+        //Returning it to the user
+        System.out.println("\t The Result Set Contains");
+        for (String usersFiles : resultSet.keySet()) {
+            //The user who has the files
+            System.out.println("\t User: " + usersFiles);
+            System.out.println("\t\t " + resultSet.get(usersFiles).toString());
+        }
+    }
+
     public void init() throws Exception {
         String username = controlIn.readUTF();
         String hostname = controlIn.readUTF();
@@ -160,8 +192,8 @@ public class ServerHelper extends Thread {
          * When the client connected to this server class. And used for
          * determining if the files were synced across threads.
         */
+        System.out.println("\t Current File Table Holds...");
         for (String usersFiles : fileMap.keySet()) {
-            System.out.println("\t Current File Table Holds...");
             //The user who has the files
             System.out.println("\t User: " + usersFiles);
             for (UserFile files : fileMap.get(usersFiles)) {
@@ -176,9 +208,19 @@ public class ServerHelper extends Thread {
                 System.out.println("Waiting for command...");
                 String command = controlIn.readUTF();
                 if (command.equals("INIT")) {
-                    System.out.println("\tINIT client received");
+                    System.out.println("\tINIT command received...");
                     init();
+
+                    //Prints out current contents of the File Storage table after ther user is initialized ABOVE.
                     debugFileTable();
+                //statement for listing the current files that match the description given
+                }else if(command.equals("LIST")){
+                    System.out.println("\tList command received...");
+                    //Yes it's not very good practice to use a temp variable.
+                    //However, I'm using it for debugging the functionality is still the same.
+                    String fileDescription = controlIn.readUTF();
+                    System.out.println("\t\t Search for files matching: " +fileDescription);
+                    search(fileDescription);
                 }
             } catch (Exception e) {
 
