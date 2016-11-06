@@ -72,7 +72,7 @@ public class MainGUI implements ActionListener{
         panel.add(lblIp);
 
         serverIpInput = new JTextField();
-        serverIpInput.setText("192.168.0.1");
+        serverIpInput.setText("localhost");
         panel.add(serverIpInput);
         serverIpInput.setColumns(8);
 
@@ -80,7 +80,8 @@ public class MainGUI implements ActionListener{
         panel.add(lblPort);
 
         portInput = new JTextField();
-        portInput.setText("port");
+        //This is the default server port.
+        portInput.setText("5012");
         panel.add(portInput);
         portInput.setColumns(5);
 
@@ -88,7 +89,7 @@ public class MainGUI implements ActionListener{
         panel.add(lblUsername);
 
         userNameInput = new JTextField();
-        userNameInput.setText("userName");
+        userNameInput.setText("Ben");
         panel.add(userNameInput);
         userNameInput.setColumns(10);
 
@@ -107,6 +108,7 @@ public class MainGUI implements ActionListener{
 
         btnConnect = new JButton("Connect");
         panel.add(btnConnect);
+        btnConnect.addActionListener(this);
 
         JPanel panel_1 = new JPanel();
         panel_1.setLayout(null);

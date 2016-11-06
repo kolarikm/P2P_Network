@@ -1,4 +1,5 @@
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.*;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -12,6 +13,9 @@ public class ServerHelper extends Thread {
     DataOutputStream dataOut;
 
     protected static ArrayList<User> userMap = new ArrayList<User>();
+
+    //A HashMap storing a user name as a key and a value pair of that user's
+    //current files stored on the server.
     protected static HashMap<String, ArrayList<UserFile>> fileMap = new HashMap<String, ArrayList<UserFile>>();
 
     public ServerHelper(Socket controlSoc) {
@@ -70,7 +74,7 @@ public class ServerHelper extends Thread {
                 //file does not exist send no back
                 controlOut.writeUTF("NO");
                 FileOutputStream fout = new FileOutputStream(f);
-                byte[] bytes = new byte[16*1024];
+                byte[] bytes = new byte[16 * 1024];
 
                 int count;
                 while ((count = dataIn.read(bytes)) > 0) {
@@ -90,32 +94,12 @@ public class ServerHelper extends Thread {
         }
     }
 
-//    public void sendFile() throws Exception {
-//        String filename = controlIn.readUTF();
-//        File f = new File(filename);
-//        if (!f.exists()) {
-//            controlOut.writeUTF("File Not Found");
-//            return;
-//        } else {
-//            controlOut.writeUTF("READY");
-//            FileInputStream fin = new FileInputStream(f);
-//            int ch;
-//            do {
-//                ch = fin.read();
-//                controlOut.writeUTF(String.valueOf(ch));
-//            }
-//            while (ch != -1);
-//            fin.close();
-//            controlOut.writeUTF("File Receive Successfully");
-//        }
-//    }
-
     public void sendFile(String myIp) throws Exception {
         dataSoc = new Socket(myIp, 5013);
         dataOut = new DataOutputStream(dataSoc.getOutputStream());
 
         String fileName = controlIn.readUTF();
-        File f = new File("/home/bensonb/IdeaProjects/457_Project1/src/ServerFolder/"+fileName);
+        File f = new File("/home/bensonb/IdeaProjects/457_Project1/src/ServerFolder/" + fileName);
 
         if (f.exists()) {
             FileInputStream fileIn = new FileInputStream(f);
@@ -158,7 +142,7 @@ public class ServerHelper extends Thread {
         String name;
         String desc;
 
-        while(lines > 0) {
+        while (lines > 0) {
             String line[] = controlIn.readUTF().split(":");
             name = line[0];
             desc = line[1];
@@ -170,14 +154,32 @@ public class ServerHelper extends Thread {
         addFiles(username, userFiles);
     }
 
+    private void debugFileTable() {
+        /*
+         * Debugging Loop for Seeing what files were uploaded to a server
+         * When the client connected to this server class. And used for
+         * determining if the files were synced across threads.
+        */
+        for (String usersFiles : fileMap.keySet()) {
+            System.out.println("\t Current File Table Holds...");
+            //The user who has the files
+            System.out.println("\t User: " + usersFiles);
+            for (UserFile files : fileMap.get(usersFiles)) {
+                System.out.println("\t\t F-Name: " + files.getName() + " F-Desc: " + files.getDescription());
+            }
+        }
+    }
+
     public void run() {
-        while(true) {
+        while (true) {
             try {
                 System.out.println("Waiting for command...");
                 String command = controlIn.readUTF();
                 if (command.equals("INIT")) {
-                    System.out.println("INIT client received");
+                    System.out.println("\tINIT client received");
+
                     init();
+                    debugFileTable();
                 }
             } catch (Exception e) {
 

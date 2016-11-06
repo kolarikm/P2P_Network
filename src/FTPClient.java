@@ -79,14 +79,14 @@ public class FTPClient {
             controlOut.writeUTF(connSpeed);
 
             //Get number of lines first so we know when to stop reading data
-            BufferedReader reader = new BufferedReader(new FileReader("/Users/Andromeda/IdeaProjects/P2P_Network/src/fileList.txt"));
+            BufferedReader reader = new BufferedReader(new FileReader("/Users/ben/IdeaProjects/P2P_Network/src/fileList.txt"));
             int lines = 0;
             while (reader.readLine() != null) lines++;
             reader.close();
 
             controlOut.writeUTF(""+lines);
 
-            try (BufferedReader br = new BufferedReader(new FileReader("/Users/Andromeda/IdeaProjects/P2P_Network/src/fileList.txt"))) {
+            try (BufferedReader br = new BufferedReader(new FileReader("/Users/ben/IdeaProjects/P2P_Network/src/fileList.txt"))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     controlOut.writeUTF(line);
