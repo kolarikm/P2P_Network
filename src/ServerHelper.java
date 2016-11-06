@@ -1,8 +1,8 @@
 import java.io.*;
-import java.lang.reflect.Array;
 import java.net.*;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ServerHelper extends Thread {
     Socket clientSocket;
@@ -16,7 +16,7 @@ public class ServerHelper extends Thread {
 
     //A HashMap storing a user name as a key and a value pair of that user's
     //current files stored on the server.
-    protected static HashMap<String, ArrayList<UserFile>> fileMap = new HashMap<String, ArrayList<UserFile>>();
+    protected static ConcurrentHashMap<String, ArrayList<UserFile>> fileMap = new ConcurrentHashMap<String, ArrayList<UserFile>>();
 
     public ServerHelper(Socket controlSoc) {
         try {
@@ -177,7 +177,6 @@ public class ServerHelper extends Thread {
                 String command = controlIn.readUTF();
                 if (command.equals("INIT")) {
                     System.out.println("\tINIT client received");
-
                     init();
                     debugFileTable();
                 }
