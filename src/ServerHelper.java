@@ -68,7 +68,7 @@ public class ServerHelper extends Thread {
             System.out.println("Error reading the file name from client.");
         }
         //it was this little slash right here that fucked us up ............... here. under me.
-        File f = new File("/home/bensonb/IdeaProjects/457_Project1/src/ServerFolder/" + fileName);
+        File f = new File("/home/kolarikm/IdeaProjects/P2P_Network/src/ServerFolder/" + fileName);
         if (!f.exists()) {
             try {
                 //file does not exist send no back
@@ -126,16 +126,16 @@ public class ServerHelper extends Thread {
         }
     }
 
-    private void search(String fileDescription){
+    private void search(String fileDescription, String ipAddress) throws Exception {
         HashMap<String, FileSearchDTO> resultSet = new HashMap<String, FileSearchDTO>();
         //loop through every key in the hashMap
         for (String usersFiles : fileMap.keySet()) {
             //Look at all the current Users Files
             for (UserFile files : fileMap.get(usersFiles)) {
-                if(files.getDescription().equalsIgnoreCase(fileDescription)){
-                    resultSet.put(usersFiles, new FileSearchDTO());
-                    resultSet.get(usersFiles).setFileName(files.getName());
-                    resultSet.get(usersFiles).setUserName(usersFiles);
+                if(files.getDescription().contains(fileDescription)){
+                    resultSet.put(usersFiles + files.getName(), new FileSearchDTO());
+                    resultSet.get(usersFiles + files.getName()).setFileName(files.getName());
+                    resultSet.get(usersFiles + files.getName()).setUserName(usersFiles);
                 }
             }
         }
@@ -147,6 +147,18 @@ public class ServerHelper extends Thread {
                 }
             }
         }
+
+        dataSoc = new Socket(ipAddress, 5013);
+        controlOut.writeUTF(""+resultSet.keySet().size());
+        dataOut = new DataOutputStream(dataSoc.getOutputStream());
+
+        for (String result : resultSet.keySet()) {
+            dataOut.writeUTF(resultSet.get(result).toString());
+        }
+
+        dataOut.flush();
+        controlOut.flush();
+        dataSoc.close();
 
         //This is a Debug Statement for seeing what the result set contains before
         //Returning it to the user
@@ -162,24 +174,19 @@ public class ServerHelper extends Thread {
         String username = controlIn.readUTF();
         String hostname = controlIn.readUTF();
         String connSpeed = controlIn.readUTF();
+        String clientIP = controlIn.readUTF();
 
         ArrayList<UserFile> userFiles = new ArrayList<UserFile>();
 
-        User user = new User(username, hostname, connSpeed);
+        User user = new User(username, hostname, connSpeed, clientIP);
 
         addUser(user);
 
         int lines = Integer.valueOf(controlIn.readUTF());
 
-        String name;
-        String desc;
-
         while (lines > 0) {
             String line[] = controlIn.readUTF().split(":");
-            name = line[0];
-            desc = line[1];
-            UserFile file = new UserFile(name, desc);
-            userFiles.add(file);
+            userFiles.add(new UserFile(line[0], line[1]));
             lines--;
         }
 
@@ -210,7 +217,6 @@ public class ServerHelper extends Thread {
                 if (command.equals("INIT")) {
                     System.out.println("\tINIT command received...");
                     init();
-
                     //Prints out current contents of the File Storage table after ther user is initialized ABOVE.
                     debugFileTable();
                 //statement for listing the current files that match the description given
@@ -219,8 +225,10 @@ public class ServerHelper extends Thread {
                     //Yes it's not very good practice to use a temp variable.
                     //However, I'm using it for debugging the functionality is still the same.
                     String fileDescription = controlIn.readUTF();
+                    String ipAddress = controlIn.readUTF();
                     System.out.println("\t\t Search for files matching: " +fileDescription);
-                    search(fileDescription);
+                    System.out.println("\t\t connect to the node on this IP: "+ipAddress);
+                    search(fileDescription, ipAddress);
                 }
             } catch (Exception e) {
 

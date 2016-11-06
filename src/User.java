@@ -6,11 +6,14 @@ public class User {
 
     String hostname;
     String connSpeed;
+    String username;
+    String clientIP;
 
-    public User(String username, String hostname, String connSpeed) {
+    public User(String username, String hostname, String connSpeed, String clientIP) {
         this.username = username;
         this.hostname = hostname;
         this.connSpeed = connSpeed;
+        this.clientIP = clientIP;
     }
 
     public String getUsername() {
@@ -20,8 +23,6 @@ public class User {
     public void setUsername(String username) {
         this.username = username;
     }
-
-    String username;
 
     public String getHostname() {
         return hostname;
@@ -37,5 +38,9 @@ public class User {
 
     public void setConnSpeed(String connSpeed) {
         this.connSpeed = connSpeed;
+    }
+
+    public String getClientIP() {
+        return clientIP;
     }
 }

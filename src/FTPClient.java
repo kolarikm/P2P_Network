@@ -44,29 +44,25 @@ public class FTPClient {
     }
 
 
-    public void search(String description) throws Exception {
+    public String search(String description) throws Exception {
         //used for data connections between the
-//        ServerSocket dataServerSocket = new ServerSocket(5013);
+        ServerSocket dataServerSocket = new ServerSocket(5013);
         controlOut.writeUTF("LIST");
         controlOut.writeUTF(description);
-//        controlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
-//        Socket socket = dataServerSocket.accept();
+        controlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
 
-//        actualDataIn = new DataInputStream(socket.getInputStream());
-
-//        String descriptions = null;
-//        int lengthOfMessage = Integer.valueOf(actualDataIn.readUTF());
-//        while (lengthOfMessage > 0) {
-//            descriptions += actualDataIn.readUTF() + "\n";
-//
-//            lengthOfMessage -= 1;
-//        }
-//        dataServerSocket.close();
-//        socket.close();
-//        actualDataIn.close();
-//
-//        return descriptions;
-        return ;
+        Socket socket = dataServerSocket.accept();
+        actualDataIn = new DataInputStream(socket.getInputStream());
+        int size = Integer.valueOf(controlIn.readUTF());
+        String fileList = "";
+        while (size > 0) {
+            fileList = fileList + actualDataIn.readUTF() + "\n";
+            size--;
+        }
+        controlOut.flush();
+        socket.close();
+        dataServerSocket.close();
+        return fileList;
     }
 
     /*
@@ -80,16 +76,17 @@ public class FTPClient {
             controlOut.writeUTF(username);
             controlOut.writeUTF(hostname);
             controlOut.writeUTF(connSpeed);
+            controlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
 
             //Get number of lines first so we know when to stop reading data
-            BufferedReader reader = new BufferedReader(new FileReader("/Users/ben/IdeaProjects/P2P_Network/src/fileList.txt"));
+            BufferedReader reader = new BufferedReader(new FileReader("/home/kolarikm/IdeaProjects/P2P_Network/src/fileList.txt"));
             int lines = 0;
             while (reader.readLine() != null) lines++;
             reader.close();
 
             controlOut.writeUTF(""+lines);
 
-            try (BufferedReader br = new BufferedReader(new FileReader("/Users/ben/IdeaProjects/P2P_Network/src/fileList.txt"))) {
+            try (BufferedReader br = new BufferedReader(new FileReader("/home/kolarikm/IdeaProjects/P2P_Network/src/fileList.txt"))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     controlOut.writeUTF(line);

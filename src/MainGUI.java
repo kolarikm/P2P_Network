@@ -33,6 +33,7 @@ public class MainGUI implements ActionListener{
     private JComboBox speedSelector;
     private FTPClient client;
     private JButton btnSearch;
+    private JTextArea searchResults;
 
     /**
      * Launch the application.
@@ -150,9 +151,9 @@ public class MainGUI implements ActionListener{
         scrollPane.setBounds(20, 39, 340, 114);
         panel_1.add(scrollPane);
 
-        JTextArea txtrSampletext = new JTextArea();
-        txtrSampletext.setText("sampleText");
-        scrollPane.setViewportView(txtrSampletext);
+        searchResults = new JTextArea();
+        searchResults.setText("sampleText");
+        scrollPane.setViewportView(searchResults);
 
         JScrollPane scrollPane_1 = new JScrollPane();
         scrollPane_1.setBounds(414, 39, 340, 114);
@@ -208,7 +209,7 @@ public class MainGUI implements ActionListener{
             }
         }else if(pressed == btnSearch){
             try {
-                client.search(txtSearch.getText());
+                searchResults.setText(client.search(txtSearch.getText()));
             }catch(Exception o){
                 System.out.println("Something went wrong");
             }
