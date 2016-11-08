@@ -2,7 +2,11 @@
  * Created by bens on 10/2/2016.
  */
 
+import org.omg.CORBA.*;
+
 import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.*;
 
 public class FTPClient {
@@ -16,10 +20,18 @@ public class FTPClient {
     String hostname;
     String connSpeed;
 
+    /*Variables for Communicating with Central Server*/
     DataInputStream centralControlIn;
-    DataOutputStream controlOut;
+    DataOutputStream centralControlOut;
     DataInputStream actualDataIn;
     DataOutputStream actualDataOut;
+
+    /* Variables for communicating with the FTP Server */
+    DataInputStream ftpControlIn;
+    DataOutputStream ftpControlOut;
+    DataInputStream ftpDataIn;
+    DataOutputStream ftpDataOut;
+
     BufferedReader bufferedReader;
 
 
@@ -39,7 +51,7 @@ public class FTPClient {
             System.out.println("The host you specified was unable to connect");
         }
         centralControlIn = new DataInputStream(clientSocket.getInputStream());
-        controlOut = new DataOutputStream(clientSocket.getOutputStream());
+        centralControlOut = new DataOutputStream(clientSocket.getOutputStream());
         uploadClientInfo();
     }
 
@@ -47,9 +59,9 @@ public class FTPClient {
     public String search(String description) throws Exception {
         //used for data connections between the
         ServerSocket dataServerSocket = new ServerSocket(5013);
-        controlOut.writeUTF("LIST");
-        controlOut.writeUTF(description);
-        controlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
+        centralControlOut.writeUTF("LIST");
+        centralControlOut.writeUTF(description);
+        centralControlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
 
         Socket socket = dataServerSocket.accept();
         actualDataIn = new DataInputStream(socket.getInputStream());
@@ -59,7 +71,7 @@ public class FTPClient {
             fileList = fileList + actualDataIn.readUTF() + "\n";
             size--;
         }
-        controlOut.flush();
+        centralControlOut.flush();
         socket.close();
         dataServerSocket.close();
         return fileList;
@@ -72,11 +84,11 @@ public class FTPClient {
     private void uploadClientInfo() throws Exception {
         if (clientSocket.isBound()) {
 
-            controlOut.writeUTF("INIT");
-            controlOut.writeUTF(username);
-            controlOut.writeUTF(hostname);
-            controlOut.writeUTF(connSpeed);
-            controlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
+            centralControlOut.writeUTF("INIT");
+            centralControlOut.writeUTF(username);
+            centralControlOut.writeUTF(hostname);
+            centralControlOut.writeUTF(connSpeed);
+            centralControlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
 
             //Get number of lines first so we know when to stop reading data
             BufferedReader reader = new BufferedReader(new FileReader("/Users/Andromeda/IdeaProjects/P2P_Network/src/fileList.txt"));
@@ -84,72 +96,23 @@ public class FTPClient {
             while (reader.readLine() != null) lines++;
             reader.close();
 
-            controlOut.writeUTF(""+lines);
+            centralControlOut.writeUTF("" + lines);
 
             try (BufferedReader br = new BufferedReader(new FileReader("/Users/Andromeda/IdeaProjects/P2P_Network/src/fileList.txt"))) {
                 String line;
                 while ((line = br.readLine()) != null) {
-                    controlOut.writeUTF(line);
+                    centralControlOut.writeUTF(line);
                 }
             }
-            controlOut.flush();
-        }
-    }
-
-    private void sendFile() {
-        String filename;
-        System.out.print("Enter File Name : ");
-        try {
-            filename = bufferedReader.readLine();
-        } catch (Exception e) {
-            System.out.println("an error occured while getting the name of the file.");
-            return;
-        }
-        File f = new File("/home/bensonb/IdeaProjects/457_Project1/src/ClientFolder/" + filename);
-        if (f.exists()) {
-            try {
-                ServerSocket dataServerSocket = new ServerSocket(5013);
-                controlOut.writeUTF("STOR");
-                controlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
-                Socket socket = dataServerSocket.accept();
-
-                actualDataIn = new DataInputStream(socket.getInputStream());
-                actualDataOut = new DataOutputStream(socket.getOutputStream());
-
-                controlOut.writeUTF(filename);
-                String response = centralControlIn.readUTF();
-                long fileSize = f.length();
-                //Yes if the file exists on the server
-                if (response.equals("YES")) {
-                    System.out.println("That file already exists on the server.");
-                    return;
-                    //Otherwise no, and transmit the data.
-                } else {
-                    FileInputStream fileIn = new FileInputStream(f);
-                    byte[] bytes = new byte[16 * 1024];
-                    controlOut.writeUTF(""+fileSize);
-                    int count;
-                    while ((count = fileIn.read(bytes)) > 0) {
-                        actualDataOut.write(bytes, 0, count);
-                    }
-                    fileIn.close();
-                    dataServerSocket.close();
-                    controlOut.flush();
-                }
-            } catch (Exception e) {
-                System.out.println("Something went wrong writing to the control.");
-            }
-        } else {
-            System.out.println("File does not exist: ");
-            return;
+            centralControlOut.flush();
         }
     }
 
     public void retreiveFile(String details) throws Exception {
         String[] command = details.split(" ");
-        controlOut.writeUTF(command[0]);
-        controlOut.writeUTF(command[1]);
-        controlOut.writeUTF(command[2]);
+        centralControlOut.writeUTF(command[0]);
+        centralControlOut.writeUTF(command[1]);
+        centralControlOut.writeUTF(command[2]);
 
         String ip = centralControlIn.readUTF();
         String result = receiveFile(ip, command[1]);
@@ -157,12 +120,20 @@ public class FTPClient {
     }
 
     public String receiveFile(String ip, String filename) {
-
+        //if the ip address is null or the file is null.
+        if(ip == null || filename == null){
+            return "The file you've requested does not exist";
+        }
         try {
+            //establish the connection to the remote ftp server.
             Socket socket = new Socket(ip, 5014);
-            actualDataIn = new DataInputStream(socket.getInputStream());
+            ftpControlIn = new DataInputStream(socket.getInputStream());
+            ftpControlOut = new DataOutputStream(socket.getOutputStream());
 
-            controlOut.writeUTF(filename);
+            //make a request to the remote server for this file named whatever
+            ftpControlOut.writeUTF(filename);
+
+            //get the length of the file
             long fileSize = Long.valueOf(centralControlIn.readUTF());
             FileOutputStream fout = new FileOutputStream(".");
             byte[] bytes = new byte[16 * 1024];
@@ -173,15 +144,17 @@ public class FTPClient {
                 fileSize -= count;
                 fout.write(bytes, 0, count);
             }
+
+            //release control of the connection once the file transfer is done.
             fout.close();
-            actualDataIn.close();
-//            dataServerSocket.close();
-            controlOut.flush();
+            ftpControlIn.close();
+            ftpControlOut.flush();
+            ftpControlOut.close();
 
         } catch (Exception e) {
             return "Something went wrong retrieving that file.";
         }
-        return "File successfully retrieved. " + "file: "+filename;
+        return "File successfully retrieved. " + "file: " + filename;
     }
 
     public void receiveFile() throws Exception {
@@ -197,13 +170,13 @@ public class FTPClient {
         if (!f.exists()) {
             try {
                 ServerSocket dataServerSocket = new ServerSocket(5013);
-                controlOut.writeUTF("RETR");
-                controlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
+                centralControlOut.writeUTF("RETR");
+                centralControlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
                 Socket socket = dataServerSocket.accept();
 
                 actualDataIn = new DataInputStream(socket.getInputStream());
 
-                controlOut.writeUTF(filename);
+                centralControlOut.writeUTF(filename);
                 long fileSize = Long.valueOf(centralControlIn.readUTF());
                 FileOutputStream fout = new FileOutputStream(f);
                 byte[] bytes = new byte[16 * 1024];
@@ -217,7 +190,7 @@ public class FTPClient {
                 fout.close();
                 actualDataIn.close();
                 dataServerSocket.close();
-                controlOut.flush();
+                centralControlOut.flush();
                 return;
             } catch (Exception e) {
                 System.out.println("An error occured receiving the file from the server");
@@ -226,13 +199,9 @@ public class FTPClient {
     }
 
     public void disconnect() throws Exception {
-        controlOut.writeUTF("QUIT");
-        controlOut.close();
+        centralControlOut.writeUTF("QUIT");
+        centralControlOut.close();
         centralControlIn.close();
 
-    }
-
-    public static void main(String args[]) throws Exception {
-        return;
     }
 }

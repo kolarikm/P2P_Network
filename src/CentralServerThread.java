@@ -260,8 +260,9 @@ public class CentralServerThread extends Thread {
                     fileRequest(fileName, username);
                 }
             } catch (Exception e) {
-
+//                System.out.println("")
             }
         }
     }
+
 }

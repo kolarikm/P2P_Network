@@ -193,25 +193,6 @@ public class MainGUI implements ActionListener{
         }
     }
 
-    /*
-    * Called when the client requests a search for a certain file.
-    * Sorts the results by
-     */
-//    private boolean searchRemoteServer(){
-//        try {
-//            //if there are no search results returned.
-//            if (client.search(client.search(stripSpaces(txtSearch.getText()))).equals("")) {
-//                txtSearch.setText("There were no search results returned for that term.");
-//            }else{
-//                //Finish me later
-//                txtSearch.setText("Here are the Results...");
-//            }
-//        }catch(Exception e){
-//            txtSearch.setText("Sorry, something went wrong.");
-//        }
-//        return false;
-//    }
-
     private String stripSpaces(String s){
         return s.replaceAll("\\s", "");
     }

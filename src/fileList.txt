@@ -1,2 +1,2 @@
-file1:desc1
-file2:desc2
+file1.txt:desc1
+file2.txt:desc2
