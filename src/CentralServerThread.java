@@ -94,24 +94,37 @@ public class CentralServerThread extends Thread {
         }
     }
 
-    public void sendFile(String myIp) throws Exception {
-        dataSoc = new Socket(myIp, 5013);
-        dataOut = new DataOutputStream(dataSoc.getOutputStream());
+//    public void sendFile(String myIp) throws Exception {
+//        dataSoc = new Socket(myIp, 5013);
+//        dataOut = new DataOutputStream(dataSoc.getOutputStream());
+//
+//        String fileName = controlIn.readUTF();
+//        File f = new File("/home/bensonb/IdeaProjects/457_Project1/src/ServerFolder/" + fileName);
+//
+//        if (f.exists()) {
+//            FileInputStream fileIn = new FileInputStream(f);
+//            byte[] bytes = new byte[16 * 1024];
+//
+//            int count;
+//            while ((count = fileIn.read(bytes)) > 0) {
+//                dataOut.write(bytes, 0, count);
+//            }
+//            fileIn.close();
+//        }
+//        return;
+//    }
 
-        String fileName = controlIn.readUTF();
-        File f = new File("/home/bensonb/IdeaProjects/457_Project1/src/ServerFolder/" + fileName);
-
-        if (f.exists()) {
-            FileInputStream fileIn = new FileInputStream(f);
-            byte[] bytes = new byte[16 * 1024];
-
-            int count;
-            while ((count = fileIn.read(bytes)) > 0) {
-                dataOut.write(bytes, 0, count);
+    public void fileRequest(String fileName, String username) throws Exception {
+        for(String users: fileMap.keySet()){
+            for(UserFile usersFile: fileMap.get(users)){
+                if(fileName.equalsIgnoreCase(usersFile.getName()) && users.equalsIgnoreCase(username)){
+                    for(User matchedUser: userMap) {
+                        controlOut.writeUTF(matchedUser.getClientIP());
+                        return;
+                    }
+                }
             }
-            fileIn.close();
         }
-        return;
     }
 
     protected static void addUser(User user) {
@@ -241,6 +254,10 @@ public class CentralServerThread extends Thread {
                 } else if(command.equals("QUIT")){
                     System.out.println("Client disconnect command received");
                     break;
+                } else if(command.equals("RETR")){
+                    String fileName = controlIn.readUTF();
+                    String username = controlIn.readUTF();
+                    fileRequest(fileName, username);
                 }
             } catch (Exception e) {
 
