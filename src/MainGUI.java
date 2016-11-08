@@ -34,6 +34,7 @@ public class MainGUI implements ActionListener{
     private JButton btnSearch;
     private JButton btnDisconnect;
     private JTextArea searchResults;
+    private JButton buttonCommand;
 
     /**
      * Launch the application.
@@ -160,9 +161,10 @@ public class MainGUI implements ActionListener{
         panel_1.add(txtCommand);
         txtCommand.setColumns(10);
 
-        JButton btnNewButton = new JButton("Do it!");
-        btnNewButton.setBounds(652, 2, 117, 29);
-        panel_1.add(btnNewButton);
+        buttonCommand  = new JButton("Do it!");
+        buttonCommand.setBounds(652, 2, 117, 29);
+        panel_1.add(buttonCommand);
+        buttonCommand.addActionListener(this);
 
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBounds(20, 39, 340, 114);
@@ -217,6 +219,8 @@ public class MainGUI implements ActionListener{
             } catch(Exception o){
                 System.out.println("Problem disconnecting");
             }
+        }else if(pressed == buttonCommand){
+            client.
         }
     }
 }
