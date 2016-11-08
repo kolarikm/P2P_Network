@@ -12,8 +12,7 @@ import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 
 import javax.swing.JTextArea;
 import java.awt.Color;
@@ -33,6 +32,7 @@ public class MainGUI implements ActionListener{
     private JComboBox speedSelector;
     private FTPClient client;
     private JButton btnSearch;
+    private JButton btnDisconnect;
     private JTextArea searchResults;
 
     /**
@@ -61,11 +61,24 @@ public class MainGUI implements ActionListener{
     /**
      * Initialize the contents of the frame.
      */
-    private void initialize() {
+    private void initialize(){
         frame = new JFrame();
         frame.setBackground(Color.DARK_GRAY);
         frame.setBounds(100, 100, 772, 412);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                try {
+                    client.disconnect();
+                    System.exit(0);
+                } catch (Exception o) {
+                    o.printStackTrace();
+                }
+            }
+        });
+
         frame.setTitle("Current Status: Not Connect");
 
         JPanel panel = new JPanel();
@@ -112,6 +125,10 @@ public class MainGUI implements ActionListener{
         btnConnect = new JButton("Connect");
         panel.add(btnConnect);
         btnConnect.addActionListener(this);
+
+        btnDisconnect = new JButton("Disconnect");
+        panel.add(btnDisconnect);
+        btnDisconnect.addActionListener(this);
 
         JPanel panel_1 = new JPanel();
         panel_1.setLayout(null);
@@ -212,6 +229,12 @@ public class MainGUI implements ActionListener{
                 searchResults.setText(client.search(txtSearch.getText()));
             }catch(Exception o){
                 System.out.println("Something went wrong");
+            }
+        }else if(pressed == btnDisconnect){
+            try {
+                client.disconnect();
+            } catch(Exception o){
+                System.out.println("Problem disconnecting");
             }
         }
     }

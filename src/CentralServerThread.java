@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ServerHelper extends Thread {
+public class CentralServerThread extends Thread {
     Socket clientSocket;
     Socket dataSoc;
     DataInputStream controlIn;
@@ -18,7 +18,7 @@ public class ServerHelper extends Thread {
     //current files stored on the server.
     protected static ConcurrentHashMap<String, ArrayList<UserFile>> fileMap = new ConcurrentHashMap<String, ArrayList<UserFile>>();
 
-    public ServerHelper(Socket controlSoc) {
+    public CentralServerThread(Socket controlSoc) {
         try {
             clientSocket = controlSoc;
 
@@ -209,6 +209,14 @@ public class ServerHelper extends Thread {
         }
     }
 
+    private void debugUserMap() {
+        System.out.println("Users connected");
+        for (User u : userMap) {
+            System.out.println(u.getUsername());
+            System.out.println(u.getClientIP());
+        }
+    }
+
     public void run() {
         while (true) {
             try {
@@ -218,7 +226,8 @@ public class ServerHelper extends Thread {
                     System.out.println("\tINIT command received...");
                     init();
                     //Prints out current contents of the File Storage table after ther user is initialized ABOVE.
-                    debugFileTable();
+                    //debugFileTable();
+                    debugUserMap();
                 //statement for listing the current files that match the description given
                 }else if(command.equals("LIST")){
                     System.out.println("\tList command received...");
@@ -229,6 +238,9 @@ public class ServerHelper extends Thread {
                     System.out.println("\t\t Search for files matching: " +fileDescription);
                     System.out.println("\t\t connect to the node on this IP: "+ipAddress);
                     search(fileDescription, ipAddress);
+                } else if(command.equals("QUIT")){
+                    System.out.println("Client disconnect command received");
+                    break;
                 }
             } catch (Exception e) {
 
