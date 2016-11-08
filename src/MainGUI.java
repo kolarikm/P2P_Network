@@ -220,7 +220,11 @@ public class MainGUI implements ActionListener{
                 System.out.println("Problem disconnecting");
             }
         }else if(pressed == buttonCommand){
-            client.
+            try {
+                client.retreiveFile(txtCommand.getText());
+            }catch(Exception d){
+                txtCommand.setText("Something went wrong retrieving that files. ");
+            }
         }
     }
 }

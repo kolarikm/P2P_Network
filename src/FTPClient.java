@@ -15,24 +15,24 @@ public class FTPClient {
     Socket clientDataSocket;
 
     int myPort;
-    String myHost;
-    String username;
-    String hostname;
-    String connSpeed;
+    private String myHost;
+    private String username;
+    private String hostname;
+    private String connSpeed;
 
     /*Variables for Communicating with Central Server*/
-    DataInputStream centralControlIn;
-    DataOutputStream centralControlOut;
-    DataInputStream actualDataIn;
-    DataOutputStream actualDataOut;
+    private DataInputStream centralControlIn;
+    private DataOutputStream centralControlOut;
+    private DataInputStream actualDataIn;
+    private DataOutputStream actualDataOut;
 
     /* Variables for communicating with the FTP Server */
-    DataInputStream ftpControlIn;
-    DataOutputStream ftpControlOut;
-    DataInputStream ftpDataIn;
-    DataOutputStream ftpDataOut;
+    private DataInputStream ftpControlIn;
+    private DataOutputStream ftpControlOut;
+    private DataInputStream ftpDataIn;
+    private DataOutputStream ftpDataOut;
 
-    BufferedReader bufferedReader;
+    private BufferedReader bufferedReader;
 
 
     public FTPClient(String serverIP, String serverPort, String username, String hostname, String connSpeed) throws Exception {
@@ -91,14 +91,14 @@ public class FTPClient {
             centralControlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
 
             //Get number of lines first so we know when to stop reading data
-            BufferedReader reader = new BufferedReader(new FileReader("/Users/Andromeda/IdeaProjects/P2P_Network/src/fileList.txt"));
+            BufferedReader reader = new BufferedReader(new FileReader("/Users/ben/IdeaProjects/P2P_Network/src/fileList.txt"));
             int lines = 0;
             while (reader.readLine() != null) lines++;
             reader.close();
 
             centralControlOut.writeUTF("" + lines);
 
-            try (BufferedReader br = new BufferedReader(new FileReader("/Users/Andromeda/IdeaProjects/P2P_Network/src/fileList.txt"))) {
+            try (BufferedReader br = new BufferedReader(new FileReader("/Users/ben/IdeaProjects/P2P_Network/src/fileList.txt"))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     centralControlOut.writeUTF(line);
