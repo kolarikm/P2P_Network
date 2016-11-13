@@ -221,7 +221,7 @@ public class MainGUI implements ActionListener{
             }
         }else if(pressed == buttonCommand){
             try {
-                client.retreiveFile(txtCommand.getText());
+                commandRestuls.setText(client.retreiveFile(txtCommand.getText()));
             }catch(Exception d){
                 txtCommand.setText("Something went wrong retrieving that files. ");
             }

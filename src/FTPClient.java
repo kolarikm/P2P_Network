@@ -91,14 +91,14 @@ public class FTPClient {
             centralControlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
 
             //Get number of lines first so we know when to stop reading data
-            BufferedReader reader = new BufferedReader(new FileReader("/Users/ben/IdeaProjects/P2P_Network/src/fileList.txt"));
+            BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\bens\\IdeaProjects\\P2P_Network\\src\\fileList.txt"));
             int lines = 0;
             while (reader.readLine() != null) lines++;
             reader.close();
 
             centralControlOut.writeUTF("" + lines);
 
-            try (BufferedReader br = new BufferedReader(new FileReader("/Users/ben/IdeaProjects/P2P_Network/src/fileList.txt"))) {
+            try (BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\bens\\IdeaProjects\\P2P_Network\\src\\fileList.txt"))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     centralControlOut.writeUTF(line);
@@ -108,15 +108,19 @@ public class FTPClient {
         }
     }
 
-    public void retreiveFile(String details) throws Exception {
+    public String retreiveFile(String details) throws Exception {
         String[] command = details.split(" ");
+        //command line
         centralControlOut.writeUTF(command[0]);
+       //the name of the file you want
         centralControlOut.writeUTF(command[1]);
+        // the user you want that file from.
         centralControlOut.writeUTF(command[2]);
 
         String ip = centralControlIn.readUTF();
         String result = receiveFile(ip, command[1]);
         // call a function to set up a connection based on this ip
+        return result;
     }
 
     public String receiveFile(String ip, String filename) {
@@ -130,26 +134,36 @@ public class FTPClient {
             ftpControlIn = new DataInputStream(socket.getInputStream());
             ftpControlOut = new DataOutputStream(socket.getOutputStream());
 
-            //make a request to the remote server for this file named whatever
+            ftpControlOut.writeUTF("RETR");
+            ftpControlOut.writeUTF(InetAddress.getLocalHost().getHostAddress());
             ftpControlOut.writeUTF(filename);
 
+            ServerSocket serversocket = new ServerSocket(5015);
+            Socket dataSocket = serversocket.accept();
+
+            ftpDataIn = new DataInputStream(dataSocket.getInputStream());
+
             //get the length of the file
-            long fileSize = Long.valueOf(centralControlIn.readUTF());
-            FileOutputStream fout = new FileOutputStream(".");
+            long fileSize = Long.valueOf(ftpControlIn.readUTF());
+            FileOutputStream fout = new FileOutputStream("C:\\Users\\bens\\IdeaProjects\\P2P_Network\\src\\Downloads\\"+filename);
             byte[] bytes = new byte[16 * 1024];
 
             int count;
             while (fileSize > 0) {
-                count = actualDataIn.read(bytes);
+                count = ftpDataIn.read(bytes);
                 fileSize -= count;
                 fout.write(bytes, 0, count);
             }
 
             //release control of the connection once the file transfer is done.
             fout.close();
-            ftpControlIn.close();
-            ftpControlOut.flush();
+            dataSocket.close();
+            serversocket.close();
+            ftpDataIn.close();
             ftpControlOut.close();
+            ftpControlOut.flush();
+            ftpControlIn.close();
+            ftpDataIn.close();
 
         } catch (Exception e) {
             return "Something went wrong retrieving that file.";
@@ -191,6 +205,7 @@ public class FTPClient {
                 actualDataIn.close();
                 dataServerSocket.close();
                 centralControlOut.flush();
+
                 return;
             } catch (Exception e) {
                 System.out.println("An error occured receiving the file from the server");
@@ -200,6 +215,7 @@ public class FTPClient {
 
     public void disconnect() throws Exception {
         centralControlOut.writeUTF("QUIT");
+        centralControlOut.writeUTF(this.username);
         centralControlOut.close();
         centralControlIn.close();
 

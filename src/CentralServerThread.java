@@ -104,6 +104,9 @@ public class CentralServerThread extends Thread {
                         if(matchedUser.getUsername().equalsIgnoreCase(username)){
                             userHoldingRequestedFileIP = matchedUser.getClientIP();
                             System.out.println("Found the user requested File On IP: " + userHoldingRequestedFileIP);
+                            //retrieve the requested file on this IP address from the FTP server holding it.
+                            controlOut.writeUTF(userHoldingRequestedFileIP);
+                            controlOut.flush();
                             return;
                         }
                     }
@@ -215,6 +218,30 @@ public class CentralServerThread extends Thread {
         }
     }
 
+    private void removeClientInfo(String userName){
+       for(int i = 0; i<userMap.size(); i++){
+           if(userMap.get(i).getUsername().equalsIgnoreCase(userName)){
+                removeUser(i);
+           }
+       }
+        removeFiles(userName);
+        debugFileTable();
+        debugUserMap();
+    }
+
+    protected static void removeUser(int index) {
+        synchronized (userMap) {
+            userMap.remove(index);
+        }
+    }
+
+    protected static void removeFiles(String username) {
+        synchronized (fileMap) {
+            fileMap.remove(username);
+        }
+    }
+
+
     public void run() {
         while (true) {
             try {
@@ -238,6 +265,7 @@ public class CentralServerThread extends Thread {
                     search(fileDescription, ipAddress);
                 } else if(command.equals("QUIT")){
                     System.out.println("Client disconnect command received");
+                    removeClientInfo(controlIn.readUTF());
                     break;
                 } else if(command.equals("RETR")){
                     String fileName = controlIn.readUTF();
